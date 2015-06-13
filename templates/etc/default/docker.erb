@@ -77,7 +77,7 @@ if @extra_parameters
    options.concat(@extra_parameters_array)
 end
 -%>
-DOCKER_OPTS='<%= options.join(" ") -%>'
+DOCKER_OPTS="<%= options.join(" ") -%>"
 
 <% if @shell_values %><% @shell_values_array.each do |param| %>
 <%= param %><% end %><% end %>
