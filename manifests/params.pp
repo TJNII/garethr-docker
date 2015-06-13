@@ -47,9 +47,10 @@ class docker::params {
       case $::operatingsystem {
         'Debian': {
           if versioncmp($::operatingsystemrelease, '8.0') >= 0 {
-            $package_name   = 'docker.io'
-            $service_name   = 'docker'
-            $docker_command = 'docker'
+            # Package from upstream is lxc-docker (https://get.docker.com/ubuntu)
+            $package_name   = $package_name_default
+            $service_name   = $service_name_default
+            $docker_command = $docker_command_default
             $detach_service_in_init = false
             include docker::systemd_reload
 
