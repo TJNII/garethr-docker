@@ -28,29 +28,29 @@ export TMPDIR="<%= @tmp_dir %>"
 opt_map = [ 
            # All the flag strings contain '="' to make things much easier with 
            # the devicemapper args.
-           {:name => 'root_dir',        :iterable => nil, :flag => '-g="'},
-           {:name => 'tcp_bind',        :iterable => nil, :flag => '-H="'},
-           {:name => 'socket_bind',     :iterable => nil, :flag => '-H="'},
-           {:name => 'log_level',       :iterable => nil, :flag => '-l="'},
-           {:name => 'selinux_enabled', :iterable => nil, :flag => '--selinux-enabled="'},
-           {:name => 'socket_group',    :iterable => nil, :flag => '-G="'},
-           {:name => 'dns',             :iterable => 'dns_array',        :flag => '--dns="'},
-           {:name => 'dns_search',      :iterable => 'dns_search_array', :flag => '--dns-search="'},
-           {:name => 'execdriver',      :iterable => nil, :flag => '-e="'},
-           {:name => 'storage_driver',  :iterable => nil, :flag => '--storage-driver="'},
+           {:name => 'root_dir',        :iterable => nil, :flag => '-g'},
+           {:name => 'tcp_bind',        :iterable => nil, :flag => '-H'},
+           {:name => 'socket_bind',     :iterable => nil, :flag => '-H'},
+           {:name => 'log_level',       :iterable => nil, :flag => '-l'},
+           {:name => 'selinux_enabled', :iterable => nil, :flag => '--selinux-enabled'},
+           {:name => 'socket_group',    :iterable => nil, :flag => '-G"'},
+           {:name => 'dns',             :iterable => 'dns_array',        :flag => '--dns'},
+           {:name => 'dns_search',      :iterable => 'dns_search_array', :flag => '--dns-search'},
+           {:name => 'execdriver',      :iterable => nil, :flag => '-e'},
+           {:name => 'storage_driver',  :iterable => nil, :flag => '--storage-driver'},
           ]
 
 # Arguments that only apply for devicemapper
 if @storage_driver == 'devicemapper'
-  opt_map.push({:name => 'dm_basesize',         :iterable => nil, :flag => '--storage-opt="dm.basesize'})
-  opt_map.push({:name => 'dm_fs',               :iterable => nil, :flag => '--storage-opt="dm.fs'})
-  opt_map.push({:name => 'dm_mkfsarg',          :iterable => nil, :flag => '--storage-opt="dm.mkfsarg'})
-  opt_map.push({:name => 'dm_mountopt',         :iterable => nil, :flag => '--storage-opt="dm.mountopt'})
-  opt_map.push({:name => 'dm_blocksize',        :iterable => nil, :flag => '--storage-opt="dm.blocksize'})
-  opt_map.push({:name => 'dm_loopdatasize',     :iterable => nil, :flag => '--storage-opt="dm.loopdatasize'})
-  opt_map.push({:name => 'dm_loopmetadatasize', :iterable => nil, :flag => '--storage-opt="dm.loopmetadatasize'})
-  opt_map.push({:name => 'dm_datadev',          :iterable => nil, :flag => '--storage-opt="dm.datadev'})
-  opt_map.push({:name => 'dm_metadatadev',      :iterable => nil, :flag => '--storage-opt="dm.metadatadev'})
+  opt_map.push({:name => 'dm_basesize',         :iterable => nil, :flag => '--storage-opt dm.basesize'})
+  opt_map.push({:name => 'dm_fs',               :iterable => nil, :flag => '--storage-opt dm.fs'})
+  opt_map.push({:name => 'dm_mkfsarg',          :iterable => nil, :flag => '--storage-opt dm.mkfsarg'})
+  opt_map.push({:name => 'dm_mountopt',         :iterable => nil, :flag => '--storage-opt dm.mountopt'})
+  opt_map.push({:name => 'dm_blocksize',        :iterable => nil, :flag => '--storage-opt dm.blocksize'})
+  opt_map.push({:name => 'dm_loopdatasize',     :iterable => nil, :flag => '--storage-opt dm.loopdatasize'})
+  opt_map.push({:name => 'dm_loopmetadatasize', :iterable => nil, :flag => '--storage-opt dm.loopmetadatasize'})
+  opt_map.push({:name => 'dm_datadev',          :iterable => nil, :flag => '--storage-opt dm.datadev'})
+  opt_map.push({:name => 'dm_metadatadev',      :iterable => nil, :flag => '--storage-opt dm.metadatadev'})
 end
 
 # Build the array using a standard method
@@ -67,7 +67,7 @@ opt_map.each do |opt_hash|
     end
 
     var_iterable.each do |arg|
-      options.push("#{opt_hash[:flag]}#{arg}\"")
+      options.push("#{opt_hash[:flag]}=#{arg}")
     end
   end
 end
