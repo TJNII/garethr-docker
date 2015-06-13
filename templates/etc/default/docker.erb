@@ -18,29 +18,66 @@ export no_proxy='<%= Array(@no_proxy).join(',') %>'
 export TMPDIR="<%= @tmp_dir %>"
 
 # # Use DOCKER_OPTS to modify the daemon startup options.
-DOCKER_OPTS="<%
-   if @root_dir %> -g=<%= @root_dir %><% end -%>
-<% if @tcp_bind %> -H=<%= @tcp_bind %><% end -%>
-<% if @socket_bind %> -H=<%= @socket_bind %><% end -%>
-<% if @log_level %> -l=<%= @log_level %><% end -%>
-<% if @selinux_enabled %> --selinux-enabled=<%= @selinux_enabled %><% end -%>
-<% if @socket_group %> -G=<%= @socket_group %><% end -%>
-<% if @dns %><% @dns_array.each do |address| %> --dns <%= address %><% end %><% end -%>
-<% if @dns_search %><% @dns_search_array.each do |domain| %> --dns-search <%= domain %><% end %><% end -%>
-<% if @execdriver %> -e=<%= @execdriver %> <% end -%>
-<% if @storage_driver %> --storage-driver=<%= @storage_driver %><% end -%>
-<% if @storage_driver == 'devicemapper' -%>
-<% if @dm_basesize %> --storage-opt dm.basesize=<%= @dm_basesize %><% end -%>
-<% if @dm_fs %> --storage-opt dm.fs=<%= @dm_fs %><% end -%>
-<% if @dm_mkfsarg %> --storage-opt "dm.mkfsarg=<%= @dm_mkfsarg %>"<% end -%>
-<% if @dm_mountopt %> --storage-opt dm.mountopt=<%= @dm_mountopt %><% end -%>
-<% if @dm_blocksize %> --storage-opt dm.blocksize=<%= @dm_blocksize %><% end -%>
-<% if @dm_loopdatasize %> --storage-opt dm.loopdatasize=<%= @dm_loopdatasize %><% end -%>
-<% if @dm_loopmetadatasize %> --storage-opt dm.loopmetadatasize=<%= @dm_loopmetadatasize %><% end -%>
-<% if @dm_datadev %> --storage-opt dm.datadev=<%= @dm_datadev %><% end -%>
-<% if @dm_metadatadev %> --storage-opt dm.metadatadev=<%= @dm_metadatadev %><% end -%>
-<% end -%>
-<% if @extra_parameters %><% @extra_parameters_array.each do |param| %> <%= param %><% end %><% end -%>
-"
+<%
+# SystemD config in Debian Jessie is not whitespace tolerant.
+# Build an array of options and join them rather than pad whitespace in
+# if blocks
+#
+# Define a array of hashes with the variable name and flag for the daemon
+# If the option is a list then interable is set to the array variable name.
+opt_map = [ 
+           # All the flag strings contain '="' to make things much easier with 
+           # the devicemapper args.
+           {:name => 'root_dir',        :iterable => nil, :flag => '-g="'},
+           {:name => 'tcp_bind',        :iterable => nil, :flag => '-H="'},
+           {:name => 'socket_bind',     :iterable => nil, :flag => '-H="'},
+           {:name => 'log_level',       :iterable => nil, :flag => '-l="'},
+           {:name => 'selinux_enabled', :iterable => nil, :flag => '--selinux-enabled="'},
+           {:name => 'socket_group',    :iterable => nil, :flag => '-G="'},
+           {:name => 'dns',             :iterable => 'dns_array',        :flag => '--dns="'},
+           {:name => 'dns_search',      :iterable => 'dns_search_array', :flag => '--dns-search="'},
+           {:name => 'execdriver',      :iterable => nil, :flag => '-e="'},
+           {:name => 'storage_driver',  :iterable => nil, :flag => '--storage-driver="'},
+          ]
+
+# Arguments that only apply for devicemapper
+if @storage_driver == 'devicemapper'
+  opt_map.push({:name => 'dm_basesize',         :iterable => nil, :flag => '--storage-opt="dm.basesize'})
+  opt_map.push({:name => 'dm_fs',               :iterable => nil, :flag => '--storage-opt="dm.fs'})
+  opt_map.push({:name => 'dm_mkfsarg',          :iterable => nil, :flag => '--storage-opt="dm.mkfsarg'})
+  opt_map.push({:name => 'dm_mountopt',         :iterable => nil, :flag => '--storage-opt="dm.mountopt'})
+  opt_map.push({:name => 'dm_blocksize',        :iterable => nil, :flag => '--storage-opt="dm.blocksize'})
+  opt_map.push({:name => 'dm_loopdatasize',     :iterable => nil, :flag => '--storage-opt="dm.loopdatasize'})
+  opt_map.push({:name => 'dm_loopmetadatasize', :iterable => nil, :flag => '--storage-opt="dm.loopmetadatasize'})
+  opt_map.push({:name => 'dm_datadev',          :iterable => nil, :flag => '--storage-opt="dm.datadev'})
+  opt_map.push({:name => 'dm_metadatadev',      :iterable => nil, :flag => '--storage-opt="dm.metadatadev'})
+end
+
+# Build the array using a standard method
+options = []
+opt_map.each do |opt_hash|
+  var = instance_variable_get(:"@#{opt_hash[:name]}")
+  if var
+    # Some options can be appended multiple times (the iterable option)
+    # Build an iterable for all args so all options are handles the same way.
+    if opt_hash[:iterable] != nil:
+      var_iterable = instance_variable_get(:"@#{opt_hash[:iterable]}")
+    else
+      var_iterable = [ var ]
+    end
+
+    var_iterable.each do |arg|
+      options.push("#{opt_hash[:flag]}#{arg}\"")
+    end
+  end
+end
+
+# And the special case: extra args
+if @extra_parameters 
+   options.concat(@extra_parameters_array)
+end
+-%>
+DOCKER_OPTS="<%= options.join(" ") -%>"
+
 <% if @shell_values %><% @shell_values_array.each do |param| %>
 <%= param %><% end %><% end %>
